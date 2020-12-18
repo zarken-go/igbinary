@@ -40,3 +40,12 @@ const (
 	ObjectRef32 // Object reference
 	SimpleRef   // Simple reference
 )
+
+func IsNegative(c byte) bool {
+	switch c {
+	case NegInt8, NegInt16, NegInt32, NegInt64:
+		return true
+	default:
+		return false
+	}
+}

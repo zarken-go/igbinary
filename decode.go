@@ -4,8 +4,13 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
+	"github.com/zarken-go/igbinary/igcode"
 	"io"
 	"reflect"
+)
+
+const (
+	disallowUnknownFieldsFlag uint32 = 1 << iota
 )
 
 type bufReader interface {
@@ -16,6 +21,8 @@ type bufReader interface {
 type Decoder struct {
 	r io.Reader
 	s io.ByteScanner
+
+	flags uint32
 
 	buf []byte
 	rec []byte // accumulates read data if not nil
@@ -52,20 +59,20 @@ func (d *Decoder) Decode(v interface{}) error {
 			*v, err = d.DecodeString()
 			return err
 		}
-		//case *[]byte:
-		//	if v != nil {
-		//		return ErrUnsupported // d.decodeBytesPtr(v)
-		//	}
-		//case *int:
-		//	if v != nil {
-		//		*v, err = d.DecodeInt()
-		//		return err
-		//	}
-		//case *int8:
-		//	if v != nil {
-		//		*v, err = d.DecodeInt8()
-		//		return err
-		//	}
+	//case *[]byte:
+	//	if v != nil {
+	//		return ErrUnsupported // d.decodeBytesPtr(v)
+	//	}
+	//case *int:
+	//	if v != nil {
+	//		*v, err = d.DecodeInt()
+	//		return err
+	//	}
+	case *int8:
+		if v != nil {
+			*v, err = d.DecodeInt8()
+			return err
+		}
 		//case *int16:
 		//	if v != nil {
 		//		*v, err = d.DecodeInt16()
@@ -171,6 +178,36 @@ func (d *Decoder) Decode(v interface{}) error {
 	// return d.DecodeValue(vv)
 }
 
+func (d *Decoder) PeekCode() (byte, error) {
+	c, err := d.s.ReadByte()
+	if err != nil {
+		return 0, err
+	}
+	return c, d.s.UnreadByte()
+}
+
+func (d *Decoder) hasNilCode() bool {
+	code, err := d.PeekCode()
+	return err == nil && code == igcode.Nil
+}
+
+func (d *Decoder) DecodeNil() error {
+	return d.skipExpected('N', ';')
+}
+
+func (d *Decoder) skipExpected(expected ...byte) error {
+	for _, e := range expected {
+		c, err := d.s.ReadByte()
+		if err != nil {
+			return err
+		}
+		if c != e {
+			return fmt.Errorf(`igbinary: Decode(expected byte '%c' found '%c')`, e, c)
+		}
+	}
+	return nil
+}
+
 func (d *Decoder) readCode() (byte, error) {
 	c, err := d.s.ReadByte()
 	if err != nil {
@@ -193,4 +230,29 @@ func (d *Decoder) readN(n int) ([]byte, error) {
 		d.rec = append(d.rec, d.buf...)
 	}
 	return d.buf, nil
+}
+
+func (d *Decoder) decodeArrayLen() (int, error) {
+	c, err := d.readCode()
+	if err != nil {
+		return 0, err
+	}
+	switch c {
+	case igcode.Array8:
+		v, err := d.uint8()
+		return int(v), err
+	}
+
+	return 0, fmt.Errorf(`igbinary: Decode(array length code '%c')`, c)
+}
+
+// DisallowUnknownFields causes the Decoder to return an error when the destination
+// is a struct and the input contains object keys which do not match any
+// non-ignored, exported fields in the destination.
+func (d *Decoder) DisallowUnknownFields(on bool) {
+	if on {
+		d.flags |= disallowUnknownFieldsFlag
+	} else {
+		d.flags &= ^disallowUnknownFieldsFlag
+	}
 }
