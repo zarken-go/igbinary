@@ -192,6 +192,20 @@ func (d *Decoder) readInteger() (byte, uint64, error) {
 			(uint64(b[2]) << 8) |
 			uint64(b[3])
 		return code, n, nil
+	case igcode.PosInt64, igcode.NegInt64:
+		b, err := d.readN(8)
+		if err != nil {
+			return code, 0, err
+		}
+		n := (uint64(b[0]) << 56) |
+			(uint64(b[1]) << 48) |
+			(uint64(b[2]) << 40) |
+			(uint64(b[3]) << 32) |
+			(uint64(b[4]) << 24) |
+			(uint64(b[5]) << 16) |
+			(uint64(b[6]) << 8) |
+			uint64(b[7])
+		return code, n, nil
 	default:
 		return code, 0, decodeErrorF(`readInteger unexpected code '%c'`, code)
 	}

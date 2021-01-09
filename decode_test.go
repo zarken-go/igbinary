@@ -4,7 +4,6 @@ import (
 	"encoding/hex"
 	"github.com/stretchr/testify/suite"
 	"github.com/zarken-go/igbinary/igcode"
-	"io"
 	"testing"
 )
 
@@ -51,7 +50,7 @@ func (Suite *DecodeSuite) TestDecodeInt8() {
 	Suite.Equal(int8(0), v)
 
 	err = Unmarshal([]byte{igcode.NegInt64, 0, 0, 1, 0}, &v)
-	Suite.EqualError(io.EOF, `EOF`)
+	Suite.EqualError(err, `unexpected EOF`)
 	Suite.Equal(int8(0), v)
 }
 
@@ -80,7 +79,7 @@ func (Suite *DecodeSuite) TestDecodeUint8() {
 	Suite.Equal(uint8(0), v)
 
 	err = Unmarshal([]byte{igcode.NegInt64, 0, 0, 1, 0}, &v)
-	Suite.EqualError(io.EOF, `EOF`)
+	Suite.EqualError(err, `unexpected EOF`)
 	Suite.Equal(uint8(0), v)
 }
 
