@@ -59,65 +59,60 @@ func (d *Decoder) Decode(v interface{}) error {
 			*v, err = d.DecodeString()
 			return err
 		}
-	//case *[]byte:
-	//	if v != nil {
-	//		return ErrUnsupported // d.decodeBytesPtr(v)
-	//	}
-	//case *int:
-	//	if v != nil {
-	//		*v, err = d.DecodeInt()
-	//		return err
-	//	}
+		//case *[]byte:
+		//	if v != nil {
+		//		return ErrUnsupported // d.decodeBytesPtr(v)
+		//	}
+	case *int:
+		if v != nil {
+			*v, err = d.DecodeInt()
+			return err
+		}
 	case *int8:
 		if v != nil {
 			*v, err = d.DecodeInt8()
 			return err
 		}
-		//case *int16:
-		//	if v != nil {
-		//		*v, err = d.DecodeInt16()
-		//		return err
-		//	}
-		//case *int32:
-		//	if v != nil {
-		//		*v, err = d.DecodeInt32()
-		//		return err
-		//	}
-		//case *int64:
-		//	if v != nil {
-		//		*v, err = d.DecodeInt64()
-		//		return err
-		//	}
-		//case *uint:
-		//	return ErrUnsupported
-		//	/*if v != nil {
-		//		*v, err = d.DecodeUint()
-		//		return err
-		//	}*/
-		//case *uint8:
-		//	return ErrUnsupported
-		//	/*if v != nil {
-		//		*v, err = d.DecodeUint8()
-		//		return err
-		//	}*/
-		//case *uint16:
-		//	return ErrUnsupported
-		//	/*if v != nil {
-		//		*v, err = d.DecodeUint16()
-		//		return err
-		//	}*/
-		//case *uint32:
-		//	return ErrUnsupported
-		//	/*if v != nil {
-		//		*v, err = d.DecodeUint32()
-		//		return err
-		//	}*/
-		//case *uint64:
-		//	return ErrUnsupported
-		//	/*if v != nil {
-		//		*v, err = d.DecodeUint64()
-		//		return err
-		//	}*/
+	case *int16:
+		if v != nil {
+			*v, err = d.DecodeInt16()
+			return err
+		}
+	case *int32:
+		if v != nil {
+			*v, err = d.DecodeInt32()
+			return err
+		}
+	case *int64:
+		if v != nil {
+			*v, err = d.DecodeInt64()
+			return err
+		}
+	case *uint:
+		if v != nil {
+			*v, err = d.DecodeUint()
+			return err
+		}
+	case *uint8:
+		if v != nil {
+			*v, err = d.DecodeUint8()
+			return err
+		}
+	case *uint16:
+		if v != nil {
+			*v, err = d.DecodeUint16()
+			return err
+		}
+	case *uint32:
+		if v != nil {
+			*v, err = d.DecodeUint32()
+			return err
+		}
+	case *uint64:
+		if v != nil {
+			*v, err = d.DecodeUint64()
+			return err
+		}
 		//case *bool:
 		//	if v != nil {
 		//		*v, err = d.DecodeBool()

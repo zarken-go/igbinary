@@ -42,13 +42,46 @@ func (Suite *DecodeSuite) TestDecodeInt8() {
 	Suite.Nil(Unmarshal([]byte{igcode.NegInt32, 0, 0, 0, 64}, &v))
 	Suite.Equal(int8(-64), v)
 
-	err = Unmarshal([]byte{igcode.NegInt32, 0, 0, 1, 0}, &v)
-	Suite.EqualError(err, `igbinary: Decode(int8 out of range)`)
+	err = Unmarshal([]byte{igcode.NegInt32, 0, 0, 0, 129}, &v)
+	Suite.EqualError(err, `igbinary: Decode(signed: int -129 out of range [-128:127])`)
+	Suite.Equal(int8(0), v)
+
+	err = Unmarshal([]byte{igcode.PosInt32, 0, 0, 0, 128}, &v)
+	Suite.EqualError(err, `igbinary: Decode(signed: int 128 out of range [-128:127])`)
 	Suite.Equal(int8(0), v)
 
 	err = Unmarshal([]byte{igcode.NegInt64, 0, 0, 1, 0}, &v)
 	Suite.EqualError(io.EOF, `EOF`)
 	Suite.Equal(int8(0), v)
+}
+
+func (Suite *DecodeSuite) TestDecodeUint8() {
+	var v uint8
+	var err error
+
+	Suite.Nil(Unmarshal([]byte{igcode.PosInt8, 0}, &v))
+	Suite.Equal(uint8(0), v)
+
+	Suite.Nil(Unmarshal([]byte{igcode.NegInt8, 0}, &v))
+	Suite.Equal(uint8(0), v)
+
+	Suite.Nil(Unmarshal([]byte{igcode.PosInt16, 0, 255}, &v))
+	Suite.Equal(uint8(255), v)
+
+	Suite.Nil(Unmarshal([]byte{igcode.PosInt32, 0, 0, 0, 64}, &v))
+	Suite.Equal(uint8(64), v)
+
+	err = Unmarshal([]byte{igcode.PosInt32, 0, 0, 1, 0}, &v)
+	Suite.EqualError(err, `igbinary: Decode(unsigned: int 256 out of range [0:255])`)
+	Suite.Equal(uint8(0), v)
+
+	err = Unmarshal([]byte{igcode.NegInt32, 0, 0, 0, 1}, &v)
+	Suite.EqualError(err, `igbinary: Decode(unsigned: int -1 out of range [0:255])`)
+	Suite.Equal(uint8(0), v)
+
+	err = Unmarshal([]byte{igcode.NegInt64, 0, 0, 1, 0}, &v)
+	Suite.EqualError(io.EOF, `EOF`)
+	Suite.Equal(uint8(0), v)
 }
 
 func TestDecodeSuite(t *testing.T) {
