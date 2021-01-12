@@ -49,3 +49,12 @@ func IsNegative(c byte) bool {
 		return false
 	}
 }
+
+func IsStringID(c byte) bool {
+	switch c {
+	case StringID8, StringID16, StringID32:
+		return true
+	default:
+		return false
+	}
+}

@@ -3,6 +3,7 @@ package igbinary
 import (
 	"bufio"
 	"bytes"
+	"errors"
 	"fmt"
 	"github.com/zarken-go/igbinary/igcode"
 	"io"
@@ -11,6 +12,7 @@ import (
 
 const (
 	disallowUnknownFieldsFlag uint32 = 1 << iota
+	maxMapSize                       = 1e6
 )
 
 type bufReader interface {
@@ -26,6 +28,8 @@ type Decoder struct {
 
 	buf []byte
 	rec []byte // accumulates read data if not nil
+
+	strings []string
 }
 
 func Unmarshal(data []byte, v interface{}) error {
@@ -113,25 +117,25 @@ func (d *Decoder) Decode(v interface{}) error {
 			*v, err = d.DecodeUint64()
 			return err
 		}
-		//case *bool:
-		//	if v != nil {
-		//		*v, err = d.DecodeBool()
-		//		return err
-		//	}
-		//case *float32:
-		//	if v != nil {
-		//		*v, err = d.DecodeFloat32()
-		//		return err
-		//	}
-		//case *float64:
-		//	if v != nil {
-		//		*v, err = d.DecodeFloat64()
-		//		return err
-		//	}
-		//case *[]string:
-		//	return ErrUnsupported // d.decodeStringSlicePtr(v)
-		//case *map[string]string:
-		//	return ErrUnsupported // d.decodeMapStringStringPtr(v)
+	//case *bool:
+	//	if v != nil {
+	//		*v, err = d.DecodeBool()
+	//		return err
+	//	}
+	//case *float32:
+	//	if v != nil {
+	//		*v, err = d.DecodeFloat32()
+	//		return err
+	//	}
+	//case *float64:
+	//	if v != nil {
+	//		*v, err = d.DecodeFloat64()
+	//		return err
+	//	}
+	//case *[]string:
+	//	return ErrUnsupported // d.decodeStringSlicePtr(v)
+	case *map[string]string:
+		return d.decodeMapStringStringPtr(v)
 		//case *map[string]interface{}:
 		//	return ErrUnsupported // d.decodeMapStringInterfacePtr(v)
 		//case *time.Duration:
@@ -147,30 +151,29 @@ func (d *Decoder) Decode(v interface{}) error {
 		//		return err
 		//	}*/
 	}
-	//
-	//vv := reflect.ValueOf(v)
-	//if !vv.IsValid() {
-	//	return errors.New("igbinary: Decode(nil)")
-	//}
-	//if vv.Kind() != reflect.Ptr {
-	//	return fmt.Errorf("igbinary: Decode(non-pointer %T)", v)
-	//}
-	//if vv.IsNil() {
-	//	return fmt.Errorf("igbinary: Decode(non-settable %T)", v)
-	//}
-	//
-	//vv = vv.Elem()
-	//if vv.Kind() == reflect.Interface {
-	//	if !vv.IsNil() {
-	//		vv = vv.Elem()
-	//		if vv.Kind() != reflect.Ptr {
-	//			return fmt.Errorf("igbinary: Decode(non-pointer %s)", vv.Type().String())
-	//		}
-	//	}
-	//}
 
-	return fmt.Errorf(`igbinary: Decode(unsupported type %s)`, reflect.TypeOf(v))
-	// return d.DecodeValue(vv)
+	vv := reflect.ValueOf(v)
+	if !vv.IsValid() {
+		return errors.New("igbinary: Decode(nil)")
+	}
+	if vv.Kind() != reflect.Ptr {
+		return fmt.Errorf("igbinary: Decode(non-pointer %T)", v)
+	}
+	if vv.IsNil() {
+		return fmt.Errorf("igbinary: Decode(non-settable %T)", v)
+	}
+
+	vv = vv.Elem()
+	if vv.Kind() == reflect.Interface {
+		if !vv.IsNil() {
+			vv = vv.Elem()
+			if vv.Kind() != reflect.Ptr {
+				return fmt.Errorf("igbinary: Decode(non-pointer %s)", vv.Type().String())
+			}
+		}
+	}
+
+	return d.DecodeValue(vv)
 }
 
 func (d *Decoder) PeekCode() (byte, error) {
@@ -188,6 +191,14 @@ func (d *Decoder) hasNilCode() bool {
 
 func (d *Decoder) DecodeNil() error {
 	return d.skipExpected('N', ';')
+}
+
+func (d *Decoder) DecodeValue(v reflect.Value) error {
+	decode := getDecoder(v.Type())
+	if decode == nil {
+		return decodeErrorF(`could not find decoder for: %s`, v.Type().String())
+	}
+	return decode(d, v)
 }
 
 func (d *Decoder) skipExpected(expected ...byte) error {

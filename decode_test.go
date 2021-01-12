@@ -146,6 +146,30 @@ func (Suite *DecodeSuite) TestDecodeUint8() {
 	Suite.Equal(uint8(0), v)
 }
 
+func (Suite *DecodeSuite) TestDecodeStringStringMap() {
+	B, err := hex.DecodeString(`140211036b656b11036c6f6c0e010e00`)
+	Suite.Nil(err)
+
+	v := make(map[string]string)
+	Suite.Nil(Unmarshal(B, &v))
+	Suite.Equal(`kek`, v[`lol`])
+	Suite.Equal(`lol`, v[`kek`])
+}
+
+func (Suite *DecodeSuite) TestDecodeStringPtrStringMap() {
+	B, err := hex.DecodeString(`140211036b656b11036c6f6c0e010e00`)
+	Suite.Nil(err)
+
+	v := make(map[string]*string)
+	Suite.Nil(Unmarshal(B, &v))
+	if Suite.NotNil(v[`lol`]) {
+		Suite.Equal(`kek`, *v[`lol`])
+	}
+	if Suite.NotNil(v[`kek`]) {
+		Suite.Equal(`lol`, *v[`kek`])
+	}
+}
+
 func TestDecodeSuite(t *testing.T) {
 	suite.Run(t, new(DecodeSuite))
 }

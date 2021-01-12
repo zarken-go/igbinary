@@ -1,7 +1,6 @@
 package igbinary
 
 import (
-	"fmt"
 	"github.com/vmihailenco/tagparser"
 	"reflect"
 	"sync"
@@ -121,7 +120,7 @@ func (fs *fields) Add(field *field) {
 func (f *field) DecodeValue(d *Decoder, strct reflect.Value) error {
 	v := fieldByIndexAlloc(strct, f.index)
 	if f.decoder == nil {
-		return fmt.Errorf(`igbinary: could not find decoder for field %s`, f.name)
+		return decodeErrorF(`could not find decoder for field %s`, f.name)
 	}
 	return f.decoder(d, v)
 }

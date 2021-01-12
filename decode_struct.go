@@ -26,6 +26,8 @@ func decodeStructValue(d *Decoder, v reflect.Value) error {
 			return fmt.Errorf("igbinary: unknown field %q", name)
 			/*} else if err := d.Skip(); err != nil {
 			return err*/
+		} else {
+			return decodeErrorF(`skipping: not supported %s`, name)
 		}
 	}
 
