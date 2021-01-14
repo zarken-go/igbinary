@@ -2,9 +2,20 @@ package igbinary
 
 import (
 	"github.com/zarken-go/igbinary/igcode"
+	"reflect"
 )
 
-const uintSize = 32 << (^uint(0) >> 32 & 1) // 32 or 64
+const (
+	uintSize  = 32 << (^uint(0) >> 32 & 1) // 32 or 64
+	int8max   = 0x7f
+	int16max  = 0x7fff
+	int32max  = 0x7fffffff
+	int64max  = 0x7fffffffffffffff
+	uint8max  = 0xff
+	uint16max = 0xffff
+	uint32max = 0xffffffff
+	uint64max = 0xffffffffffffffff
+)
 
 func (d *Decoder) uint8() (uint8, error) {
 	c, err := d.readCode()
@@ -35,7 +46,7 @@ func (d *Decoder) uint32() (uint32, error) {
 }
 
 func (d *Decoder) DecodeInt8() (int8, error) {
-	value, err := d.decodeSignedInt(0x7f)
+	value, err := d.decodeSignedInt(int8max)
 	if err != nil {
 		return 0, err
 	}
@@ -43,7 +54,7 @@ func (d *Decoder) DecodeInt8() (int8, error) {
 }
 
 func (d *Decoder) DecodeUint8() (uint8, error) {
-	value, err := d.decodeUnsignedInt(0xff)
+	value, err := d.decodeUnsignedInt(uint8max)
 	if err != nil {
 		return 0, err
 	}
@@ -51,7 +62,7 @@ func (d *Decoder) DecodeUint8() (uint8, error) {
 }
 
 func (d *Decoder) DecodeInt16() (int16, error) {
-	value, err := d.decodeSignedInt(0x7fff)
+	value, err := d.decodeSignedInt(int16max)
 	if err != nil {
 		return 0, err
 	}
@@ -59,7 +70,7 @@ func (d *Decoder) DecodeInt16() (int16, error) {
 }
 
 func (d *Decoder) DecodeUint16() (uint16, error) {
-	value, err := d.decodeUnsignedInt(0xffff)
+	value, err := d.decodeUnsignedInt(uint16max)
 	if err != nil {
 		return 0, err
 	}
@@ -67,7 +78,7 @@ func (d *Decoder) DecodeUint16() (uint16, error) {
 }
 
 func (d *Decoder) DecodeInt32() (int32, error) {
-	value, err := d.decodeSignedInt(0x7fffffff)
+	value, err := d.decodeSignedInt(int32max)
 	if err != nil {
 		return 0, err
 	}
@@ -75,7 +86,7 @@ func (d *Decoder) DecodeInt32() (int32, error) {
 }
 
 func (d *Decoder) DecodeUint32() (uint32, error) {
-	value, err := d.decodeUnsignedInt(0xffffffff)
+	value, err := d.decodeUnsignedInt(uint32max)
 	if err != nil {
 		return 0, err
 	}
@@ -83,7 +94,7 @@ func (d *Decoder) DecodeUint32() (uint32, error) {
 }
 
 func (d *Decoder) DecodeInt64() (int64, error) {
-	value, err := d.decodeSignedInt(0x7fffffffffffffff)
+	value, err := d.decodeSignedInt(int64max)
 	if err != nil {
 		return 0, err
 	}
@@ -91,7 +102,7 @@ func (d *Decoder) DecodeInt64() (int64, error) {
 }
 
 func (d *Decoder) DecodeUint64() (uint64, error) {
-	value, err := d.decodeUnsignedInt(0xffffffffffffffff)
+	value, err := d.decodeUnsignedInt(uint64max)
 	if err != nil {
 		return 0, err
 	}
@@ -111,9 +122,9 @@ func (d *Decoder) DecodeInt() (int, error) {
 }
 
 func (d *Decoder) DecodeUint() (uint, error) {
-	var limit uint64 = 0xffffffff // 32-bit system
+	var limit uint64 = uint32max // 32-bit system
 	if uintSize == 64 {
-		limit = 0xffffffffffffffff // 64-bit system
+		limit = uint64max // 64-bit system
 	}
 	value, err := d.decodeUnsignedInt(limit)
 	if err != nil {
@@ -209,5 +220,80 @@ func (d *Decoder) readInteger() (byte, uint64, error) {
 	default:
 		return code, 0, decodeErrorF(`readInteger unexpected code '%c'`, code)
 	}
+}
 
+func decodeSignedValue(d *Decoder, v reflect.Value, limit uint64) error {
+	value, err := d.decodeSignedInt(limit)
+	if err != nil {
+		return err
+	}
+	v.SetInt(value)
+	return nil
+}
+
+func decodeInt8Value(d *Decoder, v reflect.Value) error {
+	return decodeSignedValue(d, v, int8max)
+}
+
+func decodeInt16Value(d *Decoder, v reflect.Value) error {
+	return decodeSignedValue(d, v, int16max)
+}
+
+func decodeInt32Value(d *Decoder, v reflect.Value) error {
+	return decodeSignedValue(d, v, int32max)
+}
+
+func decodeInt64Value(d *Decoder, v reflect.Value) error {
+	return decodeSignedValue(d, v, int64max)
+}
+
+func decodeIntValue(d *Decoder, v reflect.Value) error {
+	var limit uint64 = int32max // 32-bit system
+	if uintSize == 64 {
+		limit = int64max // 64-bit system
+	}
+	value, err := d.decodeSignedInt(limit)
+	if err != nil {
+		return err
+	}
+	v.SetInt(value)
+	return nil
+}
+
+func decodeUnsignedValue(d *Decoder, v reflect.Value, limit uint64) error {
+	value, err := d.decodeUnsignedInt(limit)
+	if err != nil {
+		return err
+	}
+	v.SetUint(value)
+	return nil
+}
+
+func decodeUint8Value(d *Decoder, v reflect.Value) error {
+	return decodeSignedValue(d, v, uint8max)
+}
+
+func decodeUint16Value(d *Decoder, v reflect.Value) error {
+	return decodeSignedValue(d, v, uint16max)
+}
+
+func decodeUint32Value(d *Decoder, v reflect.Value) error {
+	return decodeSignedValue(d, v, uint32max)
+}
+
+func decodeUint64Value(d *Decoder, v reflect.Value) error {
+	return decodeSignedValue(d, v, uint64max)
+}
+
+func decodeUintValue(d *Decoder, v reflect.Value) error {
+	var limit uint64 = uint32max // 32-bit system
+	if uintSize == 64 {
+		limit = uint64max // 64-bit system
+	}
+	value, err := d.decodeUnsignedInt(limit)
+	if err != nil {
+		return err
+	}
+	v.SetUint(value)
+	return nil
 }

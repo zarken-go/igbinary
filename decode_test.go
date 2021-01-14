@@ -47,6 +47,15 @@ func (Suite *DecodeSuite) assertUnmarshalInt8(expected int8, data []byte, errStr
 	err := Unmarshal(data, &v)
 	Suite.assertNilOrError(err, errStr)
 	Suite.Equal(expected, v)
+
+	container := struct {
+		V int8 `igbinary:"v"`
+	}{}
+	containedData := []byte{igcode.Array8, 1, igcode.String8, 1, 'v'}
+	containedData = append(containedData, data...)
+	err = Unmarshal(containedData, &container)
+	Suite.assertNilOrError(err, errStr)
+	Suite.Equal(expected, container.V)
 }
 
 func (Suite *DecodeSuite) TestDecodeInt16() {
@@ -67,6 +76,15 @@ func (Suite *DecodeSuite) assertUnmarshalInt16(expected int16, data []byte, errS
 	err := Unmarshal(data, &v)
 	Suite.assertNilOrError(err, errStr)
 	Suite.Equal(expected, v)
+
+	container := struct {
+		V int16 `igbinary:"v"`
+	}{}
+	containedData := []byte{igcode.Array8, 1, igcode.String8, 1, 'v'}
+	containedData = append(containedData, data...)
+	err = Unmarshal(containedData, &container)
+	Suite.assertNilOrError(err, errStr)
+	Suite.Equal(expected, container.V)
 }
 
 func (Suite *DecodeSuite) TestDecodeInt32() {
@@ -87,6 +105,15 @@ func (Suite *DecodeSuite) assertUnmarshalInt32(expected int32, data []byte, errS
 	err := Unmarshal(data, &v)
 	Suite.assertNilOrError(err, errStr)
 	Suite.Equal(expected, v)
+
+	container := struct {
+		V int32 `igbinary:"v"`
+	}{}
+	containedData := []byte{igcode.Array8, 1, igcode.String8, 1, 'v'}
+	containedData = append(containedData, data...)
+	err = Unmarshal(containedData, &container)
+	Suite.assertNilOrError(err, errStr)
+	Suite.Equal(expected, container.V)
 }
 
 func (Suite *DecodeSuite) TestDecodeInt64() {
@@ -107,6 +134,15 @@ func (Suite *DecodeSuite) assertUnmarshalInt64(expected int64, data []byte, errS
 	err := Unmarshal(data, &v)
 	Suite.assertNilOrError(err, errStr)
 	Suite.Equal(expected, v)
+
+	container := struct {
+		V int64 `igbinary:"v"`
+	}{}
+	containedData := []byte{igcode.Array8, 1, igcode.String8, 1, 'v'}
+	containedData = append(containedData, data...)
+	err = Unmarshal(containedData, &container)
+	Suite.assertNilOrError(err, errStr)
+	Suite.Equal(expected, container.V)
 }
 
 func (Suite *DecodeSuite) assertNilOrError(actualErr error, expectedErr string) {

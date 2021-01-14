@@ -60,7 +60,7 @@ func newFields(typ reflect.Type) *fields {
 }
 
 var (
-	defaultStructTag = `php`
+	defaultStructTag = `igbinary`
 )
 
 func getFields(typ reflect.Type, fallbackTag string) *fields {
