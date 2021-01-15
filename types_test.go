@@ -65,6 +65,12 @@ func (Suite *DecodeSuite) TestTypes() {
 		{expected: 0, out: new(int), hex: `218000000000000001`,
 			errStr: `igbinary: Decode(signed: int -9223372036854775809 out of range [-9223372036854775808:9223372036854775807])`},
 		{expected: 0, out: new(int), hex: `0800`, errStr: `unexpected EOF`},
+
+		{expected: 0, out: new(int), hex: ``, errStr: `EOF`},
+		{expected: 0, out: new(int), hex: `06`, errStr: `EOF`},
+		{expected: 0, out: new(int), hex: `0900`, errStr: `unexpected EOF`},
+		{expected: 0, out: new(int), hex: `0b0100`, errStr: `unexpected EOF`},
+		{expected: 0, out: new(int), hex: `61`, errStr: `igbinary: Decode(readInteger unexpected code 'a')`},
 	}
 
 	for _, Test := range Tests {
@@ -74,12 +80,26 @@ func (Suite *DecodeSuite) TestTypes() {
 				Suite.T().Fatalf(`cannot decode hex test data: %s - (%s)`, err, Test.hex)
 			}
 		}
+
 		buffer := bytes.NewBuffer(Test.data)
 		decoder := NewDecoder(buffer)
 		err := decoder.Decode(Test.out)
+
 		Suite.assertNilOrError(err, Test.errStr)
 		Suite.Equal(indirect(Test.expected), indirect(Test.out))
+		// ensure nothing is left in the buffer
+		if buffer.Len() > 0 {
+			Suite.T().Fatalf("unread data in the buffer: %q (%s)", buffer.Bytes(), Test)
+		}
 
+		buffer = bytes.NewBuffer(Test.data)
+		decoder = NewDecoder(buffer)
+		decodeDest := reflect.ValueOf(Test.out).Elem()
+		decoderF := getDecoder(decodeDest.Type())
+		err = decoderF(decoder, decodeDest)
+
+		Suite.assertNilOrError(err, Test.errStr)
+		Suite.Equal(indirect(Test.expected), indirect(Test.out))
 		// ensure nothing is left in the buffer
 		if buffer.Len() > 0 {
 			Suite.T().Fatalf("unread data in the buffer: %q (%s)", buffer.Bytes(), Test)

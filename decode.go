@@ -190,7 +190,7 @@ func (d *Decoder) hasNilCode() bool {
 }
 
 func (d *Decoder) DecodeNil() error {
-	return d.skipExpected('N', ';')
+	return d.skipExpected(igcode.Nil)
 }
 
 func (d *Decoder) DecodeValue(v reflect.Value) error {

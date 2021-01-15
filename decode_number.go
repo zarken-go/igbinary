@@ -270,19 +270,19 @@ func decodeUnsignedValue(d *Decoder, v reflect.Value, limit uint64) error {
 }
 
 func decodeUint8Value(d *Decoder, v reflect.Value) error {
-	return decodeSignedValue(d, v, uint8max)
+	return decodeUnsignedValue(d, v, uint8max)
 }
 
 func decodeUint16Value(d *Decoder, v reflect.Value) error {
-	return decodeSignedValue(d, v, uint16max)
+	return decodeUnsignedValue(d, v, uint16max)
 }
 
 func decodeUint32Value(d *Decoder, v reflect.Value) error {
-	return decodeSignedValue(d, v, uint32max)
+	return decodeUnsignedValue(d, v, uint32max)
 }
 
 func decodeUint64Value(d *Decoder, v reflect.Value) error {
-	return decodeSignedValue(d, v, uint64max)
+	return decodeUnsignedValue(d, v, uint64max)
 }
 
 func decodeUintValue(d *Decoder, v reflect.Value) error {
