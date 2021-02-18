@@ -1,6 +1,7 @@
 package igbinary
 
 import (
+	"bytes"
 	"encoding/hex"
 	"github.com/stretchr/testify/suite"
 	"testing"
@@ -38,6 +39,25 @@ func (Suite *EncodeSuite) TestFloats() {
 func (Suite *EncodeSuite) TestStrings() {
 	Suite.assertMarshal(`foobar`, `1106666f6f626172`)
 	Suite.assertMarshal([]byte(`foobar`), `1106666f6f626172`)
+}
+
+func (Suite *EncodeSuite) TestEncodeArrayLen() {
+	b := &bytes.Buffer{}
+	Encoder := NewEncoder(b)
+	Suite.Nil(Encoder.EncodeArrayLen(10))
+	Suite.Equal([]byte{0x14, 0xa}, b.Bytes())
+
+	b.Reset()
+	Suite.Nil(Encoder.EncodeArrayLen(300))
+	Suite.Equal([]byte{0x15, 0x1, 0x2c}, b.Bytes())
+
+	b.Reset()
+	Suite.Nil(Encoder.EncodeArrayLen(0xfffff))
+	Suite.Equal([]byte{0x16, 0x0, 0xf, 0xff, 0xff}, b.Bytes())
+
+	b.Reset()
+	err := Encoder.EncodeArrayLen(0xfffffffff)
+	Suite.EqualError(err, `igbinary: Encode(unsupported array length 68719476735)`)
 }
 
 func (Suite *EncodeSuite) assertMarshal(v interface{}, expectedHex string) {

@@ -57,8 +57,10 @@ func Marshal(v interface{}) ([]byte, error) {
 }
 
 type Encoder struct {
-	w   writer
-	buf []byte
+	w        writer
+	buf      []byte
+	strings  map[string]uint
+	stringID uint
 }
 
 // NewEncoder returns a new encoder that writes to w.
@@ -159,9 +161,30 @@ func (e *Encoder) EncodeString(v string) error {
 }
 
 func (e *Encoder) EncodeBytes(v []byte) error {
-	// TODO: Compact Mode Map
+	// TODO: unnecessary re-conversion back to string.
+	str := string(v)
+	if e.strings == nil {
+		e.strings = make(map[string]uint)
+	}
+	if ID, ok := e.strings[str]; ok {
+		// Encode as ID
+		if ID <= 0xff {
+			return e.write1(igcode.StringID8, uint8(ID))
+		}
+		if ID <= 0xffff {
+			return e.write2(igcode.StringID16, uint16(ID))
+		}
+		if ID <= 0xffffffff {
+			return e.write4(igcode.StringID32, uint32(ID))
+		}
+		return fmt.Errorf(`igbinary: Encode(string ID exceeds range)`)
+	}
+
+	e.strings[str] = e.stringID
+	e.stringID++
+
 	length := len(v)
-	if length <= 255 {
+	if length <= 0xff {
 		if err := e.write1(igcode.String8, uint8(length)); err != nil {
 			return err
 		}
@@ -230,4 +253,18 @@ func (e *Encoder) write(b []byte) error {
 func (e *Encoder) writeBytes(b ...byte) error {
 	_, err := e.w.Write(b)
 	return err
+}
+
+func (e *Encoder) EncodeArrayLen(length int) error {
+	if length <= 0xff {
+		return e.write1(igcode.Array8, uint8(length))
+	}
+	if length <= 0xffff {
+		return e.write2(igcode.Array16, uint16(length))
+	}
+	if length <= 0xffffffff {
+		return e.write4(igcode.Array32, uint32(length))
+	}
+
+	return fmt.Errorf(`igbinary: Encode(unsupported array length %d)`, length)
 }
