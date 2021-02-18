@@ -6,7 +6,7 @@ import (
 )
 
 func decodeStructValue(d *Decoder, v reflect.Value) error {
-	arrayLen, err := d.decodeArrayLen()
+	arrayLen, err := d.DecodeArrayLen()
 	if err != nil {
 		return err
 	}

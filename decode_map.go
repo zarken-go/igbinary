@@ -7,7 +7,7 @@ var (
 )
 
 func decodeMapValue(d *Decoder, v reflect.Value) error {
-	n, err := d.decodeArrayLen()
+	n, err := d.DecodeArrayLen()
 	if err != nil {
 		return err
 	}
@@ -55,7 +55,7 @@ func (d *Decoder) decodeTypedMapValue(v reflect.Value, n int) error {
 }
 
 func (d *Decoder) decodeMapStringStringPtr(ptr *map[string]string) error {
-	size, err := d.decodeArrayLen()
+	size, err := d.DecodeArrayLen()
 	if err != nil {
 		return err
 	}

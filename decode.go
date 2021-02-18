@@ -238,7 +238,7 @@ func (d *Decoder) readN(n int) ([]byte, error) {
 	return d.buf, nil
 }
 
-func (d *Decoder) decodeArrayLen() (int, error) {
+func (d *Decoder) DecodeArrayLen() (int, error) {
 	c, err := d.readCode()
 	if err != nil {
 		return 0, err
