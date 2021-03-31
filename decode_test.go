@@ -1,6 +1,7 @@
 package igbinary
 
 import (
+	"bytes"
 	"encoding/hex"
 	"github.com/stretchr/testify/suite"
 	"github.com/zarken-go/igbinary/igcode"
@@ -204,6 +205,23 @@ func (Suite *DecodeSuite) TestDecodeStringPtrStringMap() {
 	if Suite.NotNil(v[`kek`]) {
 		Suite.Equal(`lol`, *v[`kek`])
 	}
+}
+
+func (Suite *DecodeSuite) TestDecodeArrayLen() {
+	Decoder := NewDecoder(bytes.NewReader([]byte{igcode.Array8, 0x96}))
+	ArrayLen, err := Decoder.DecodeArrayLen()
+	Suite.Nil(err)
+	Suite.Equal(150, ArrayLen)
+
+	Decoder = NewDecoder(bytes.NewReader([]byte{igcode.Array16, 0x1, 0x2c}))
+	ArrayLen, err = Decoder.DecodeArrayLen()
+	Suite.Nil(err)
+	Suite.Equal(300, ArrayLen)
+
+	Decoder = NewDecoder(bytes.NewReader([]byte{igcode.Array32, 0x0, 0x01, 0x86, 0xa0}))
+	ArrayLen, err = Decoder.DecodeArrayLen()
+	Suite.Nil(err)
+	Suite.Equal(100000, ArrayLen)
 }
 
 func TestDecodeSuite(t *testing.T) {

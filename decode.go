@@ -247,6 +247,12 @@ func (d *Decoder) DecodeArrayLen() (int, error) {
 	case igcode.Array8:
 		v, err := d.uint8()
 		return int(v), err
+	case igcode.Array16:
+		v, err := d.uint16()
+		return int(v), err
+	case igcode.Array32:
+		v, err := d.uint32()
+		return int(v), err
 	}
 
 	return 0, fmt.Errorf(`igbinary: Decode(array length code '%c')`, c)
